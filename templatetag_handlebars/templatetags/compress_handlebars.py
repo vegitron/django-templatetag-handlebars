@@ -4,6 +4,7 @@ from templatetag_handlebars import verbatim_tags, VerbatimNode
 from HTMLParser import HTMLParser
 import subprocess
 import tempfile
+import os
 import re
 
 register = template.Library()
@@ -15,6 +16,7 @@ Code to manage compiling/compressing handlebars templates
 """
 
 # XXX - make it so this only runs offline.  crazy slow.
+# or, make it faster?
 
 class CompressNode(template.Node):
     def __init__(self, text_and_nodes):
@@ -46,6 +48,8 @@ class CompressNode(template.Node):
                             template.raw_content)
 
             content_parts.append(compressed)
+
+        os.rmdir(compile_root)
 
         content_parts.append("</script>")
         content_parts.append(non_template_content)
@@ -153,5 +157,9 @@ def compress_template(compress_path, name, content):
     f = open(compiled_path, "rb")
     content = f.read()
     f.close()
+
+    os.remove(raw_path)
+    os.remove(compiled_path)
+
 
     return content
