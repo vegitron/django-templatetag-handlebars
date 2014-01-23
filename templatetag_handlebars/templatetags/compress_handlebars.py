@@ -18,6 +18,8 @@ Code to manage compiling/compressing handlebars templates
 # XXX - make it so this only runs offline.  crazy slow.
 # or, make it faster?
 
+HANDLEBARS_LOADED_JS = "if (window.handlebars_loaded && 'function' == typeof(window.handlebars_loaded)) { window.handlebars_loaded(); }"
+
 class CompressNode(template.Node):
     def __init__(self, text_and_nodes):
         self.text_and_nodes = text_and_nodes
@@ -27,7 +29,17 @@ class CompressNode(template.Node):
         if hasattr(settings, "HANDLEBARS_COMPILER"):
             return self.compiled_render(raw_content)
         else:
-            return raw_content
+            return self.modified_raw_content(raw_content)
+
+    def modified_raw_content(self, raw_content):
+        content_parts = []
+        content_parts.append(raw_content)
+        content_parts.append('<script type="text/javascript">')
+        content_parts.append('window.addEventListener("load", function() {')
+        content_parts.append(self.get_templates_loaded_js())
+        content_parts.append('});</script>')
+
+        return "".join(content_parts)
 
     def compiled_render(self, raw_content):
         parser = HandlebarScriptParser()
@@ -40,6 +52,7 @@ class CompressNode(template.Node):
 
         content_parts = []
         content_parts.append('<script type="text/javascript">')
+        content_parts.append('window.addEventListener("load", function() {')
 
         for template in raw_templates:
             compressed = compress_template(
@@ -51,11 +64,15 @@ class CompressNode(template.Node):
 
         os.rmdir(compile_root)
 
+        content_parts.append(self.get_templates_loaded_js())
+        content_parts.append('});')
         content_parts.append("</script>")
         content_parts.append(non_template_content)
 
         return "".join(content_parts)
 
+    def get_templates_loaded_js(self):
+        return getattr(settings, "HANDLEBARS_LOADED_JS", HANDLEBARS_LOADED_JS)
 
 class HandlebarScriptParser(HTMLParser):
     in_template = False
