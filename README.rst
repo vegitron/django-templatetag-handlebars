@@ -51,6 +51,7 @@ USAGE
 * To pre-compile, use {% compress_handlebars %} :
 
 ::
+
     {% load compress_handlebars %}
     {% compress_handlebars %}
     {% tplhandlebars "tpl-infos" %}
@@ -90,6 +91,7 @@ Advanced
 * To enable compression, you need to define HANDLEBARS_COMPILER in your settings.  For example:
 
 ::
+
     HANDLEBARS_COMPILER = "/usr/local/bin/handlebars {infile} -f {outfile}"
 
 
@@ -131,6 +133,7 @@ AUTHORS
     * Mathieu Leplatre <mathieu.leplatre@makina-corpus.com>
     * Miguel Araujo <https://github.com/maraujop>
     * Ross Crawford-d'Heureuse <https://github.com/stard0g101>
+    * Patrick Michaud <https://github.com/vegitron>
 
 |makinacom|_
 
