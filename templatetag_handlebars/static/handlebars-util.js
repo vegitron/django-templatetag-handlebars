@@ -9,5 +9,5 @@ Handlebars.load_template = function (name) {
     }
 
     return Handlebars.templates[name];
-}
+};
 
