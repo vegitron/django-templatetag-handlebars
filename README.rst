@@ -17,16 +17,15 @@ USAGE
 
 * Add ``templatetag_handlebars`` to your ``INSTALLED_APPS``
 
-* Add the HTML header :
+* Add the HTML footer:
 
 ::
 
     {% load templatetag_handlebars %}
 
-    <head>
-    {% handlebars_js %}
     ...
-    </head>
+    {% handlebars_js %}
+    </body>
 
 * Call the template tag, and write your Handlebars template :
 
@@ -49,7 +48,20 @@ USAGE
         <p>Max: {{max}}</p>
     <script>
 
-* Render it, client-side, as usual using ``Handlebars.js`` API :
+* To pre-compile, use {% compress_handlebars %} :
+
+::
+    {% load compress_handlebars %}
+    {% compress_handlebars %}
+    {% tplhandlebars "tpl-infos" %}
+        {{total}} {% trans "result(s)." %}
+        <p>{% trans "Min" %}: {{min}}</p>
+        <p>{% trans "Max" %}: {{max}}</p>
+    {% endtplhandlebars %}
+    {% endcompress_handlebars %}
+
+
+* Render it, client-side, as usual using ``Handlebars.js`` API.  load_template is a function provided by templatetag_handlebars to work with plain or pre-compiled templates:
 
 ::
 
@@ -59,7 +71,7 @@ USAGE
         max: 5
     };
 
-    var template = Handlebars.compile($('#tpl-infos').html()),
+    var template = Handlebars.load_template('tpl-infos'),
         rendered = template(properties);
 
 * Your rendered string is ready, and waiting to be inserted in your DOM :)
@@ -72,6 +84,14 @@ USAGE
 
 Advanced
 ========
+
+* A javascript method will be called when templates are ready.  By default, that method is handlebars_loaded.  You can change that by defining HANDLEBARS_LOADED_JS in settings.py.  This is only needed if you are compressing your templates, but it's available regardless.
+
+* To enable compression, you need to define HANDLEBARS_COMPILER in your settings.  For example:
+
+::
+    HANDLEBARS_COMPILER = "/usr/local/bin/handlebars {infile} -f {outfile}"
+
 
 A ``{% verbatim %}`` tag is available to escape a specific part. For 
 example, you may want a subpart of your *Handlebars* template to be 

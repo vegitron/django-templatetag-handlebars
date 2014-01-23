@@ -97,8 +97,13 @@ def verbatim(parser, token):
 
 @register.simple_tag
 def handlebars_js():
-    return """<script src="%shandlebars.js"></script>""" % settings.STATIC_URL
+    # TODO - make this return the runtime version if using compressed
+    # templates (override in config?)
 
+    script_tags = []
+    script_tags.append('<script src="%shandlebars-v1.3.0.js"></script>' % settings.STATIC_URL)
+    script_tags.append('<script src="%shandlebars-util.js"></script>' % settings.STATIC_URL)
+    return "".join(script_tags)
 
 class HandlebarsNode(VerbatimNode):
     """
