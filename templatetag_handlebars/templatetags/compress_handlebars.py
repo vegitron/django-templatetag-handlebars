@@ -1,11 +1,24 @@
 from django.conf import settings
 from django import template
+from django.utils.encoding import smart_str
+
 from templatetag_handlebars import verbatim_tags, VerbatimNode
 from HTMLParser import HTMLParser
 import subprocess
+import hashlib
 import tempfile
 import os
 import re
+
+# Try to use compressor's backend - why rebuild it?
+has_compressor = False
+try:
+    from compressor.cache import (cache_get, cache_set, get_offline_hexdigest,
+                              get_offline_manifest, get_templatetag_cachekey)
+
+    has_compressor = True
+except Exception:
+    pass
 
 register = template.Library()
 
@@ -42,6 +55,13 @@ class CompressNode(template.Node):
         return "".join(content_parts)
 
     def compiled_render(self, raw_content):
+
+        if has_compressor:
+            digest = hashlib.md5(smart_str(raw_content)).hexdigest()
+            cached = cache_get(digest)
+            if cached:
+                return cached
+
         parser = HandlebarScriptParser()
         parser.feed(raw_content)
 
@@ -69,7 +89,11 @@ class CompressNode(template.Node):
         content_parts.append("</script>")
         content_parts.append(non_template_content)
 
-        return "".join(content_parts)
+        compiled = "".join(content_parts)
+
+        if has_compressor:
+            cache_set(digest, compiled)
+        return compiled
 
     def get_templates_loaded_js(self):
         return getattr(settings, "HANDLEBARS_LOADED_JS", HANDLEBARS_LOADED_JS)
