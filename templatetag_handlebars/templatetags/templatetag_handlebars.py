@@ -1,6 +1,9 @@
 from django import template
 from django.conf import settings
 from django.utils import six
+import subprocess
+import codecs
+import os
 
 register = template.Library()
 
@@ -106,6 +109,9 @@ def handlebars_js():
     script_tags.append('<script src="%shandlebars-util.js"></script>' % settings.STATIC_URL)
     return "".join(script_tags)
 
+def get_compiled_js_name():
+    return getattr(settings, "HANDLEBARS_COMPILED_STATIC_PATH", "compiled_templates.js")
+
 class HandlebarsNode(VerbatimNode):
     """
     A Handlebars.js block is a *verbatim* block wrapped inside a
@@ -124,8 +130,32 @@ class HandlebarsNode(VerbatimNode):
         super(HandlebarsNode, self).__init__(text_and_nodes)
         self.template_id = template_id
 
+    def _render_compiled(self, output):
+        if not hasattr(settings, "HANDLEBARS_COMPILER"):
+            raise Exception("Missing configuration: HANDLEBARS_COMPILER")
+
+        handlebars_command = settings.HANDLEBARS_COMPILER
+        handlebars_command = handlebars_command.replace('{template_name}', self.template_id)
+        proc = subprocess.Popen(handlebars_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        out, err = proc.communicate(input=output.encode('utf8'))
+        out = out.decode('utf-8')
+
+        compiled_script_name = get_compiled_js_name()
+        file_path = os.path.join(settings.STATIC_ROOT, compiled_script_name)
+
+        with codecs.open(file_path, "a", encoding="utf-8") as handle:
+            handle.write(out)
+
+        return """<script type="text/javascript">%s</script>""" % out
+
+
     def render(self, context):
         output = super(HandlebarsNode, self).render(context)
+
+        if getattr(settings, "HANDLEBARS_PRECOMPILE_TEMPLATES", False):
+            return self._render_compiled(output)
+
         if getattr(settings, 'USE_EMBER_STYLE_ATTRS', False) is True:
             id_attr, script_type = 'data-template-name', 'text/x-handlebars'
         else:
