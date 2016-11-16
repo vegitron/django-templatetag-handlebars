@@ -59,8 +59,6 @@ USAGE
 Advanced
 ========
 
-* A javascript method will be called when templates are ready.  By default, that method is handlebars_loaded.  You can change that by defining HANDLEBARS_LOADED_JS in settings.py.  This is only needed if you are compressing your templates, but it's available regardless.
-
 * To enable compression, you need to define HANDLEBARS_COMPILER in your settings.  For example:
 
 ::
