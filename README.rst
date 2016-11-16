@@ -48,33 +48,6 @@ USAGE
         <p>Max: {{max}}</p>
     <script>
 
-* To pre-compile, use {% compress_handlebars %} :
-
-::
-
-    {% load compress_handlebars %}
-    {% compress_handlebars %}
-    {% tplhandlebars "tpl-infos" %}
-        {{total}} {% trans "result(s)." %}
-        <p>{% trans "Min" %}: {{min}}</p>
-        <p>{% trans "Max" %}: {{max}}</p>
-    {% endtplhandlebars %}
-    {% endcompress_handlebars %}
-
-
-* Render it, client-side, as usual using ``Handlebars.js`` API.  load_template is a function provided by templatetag_handlebars to work with plain or pre-compiled templates:
-
-::
-
-    var properties = {
-        total: 10,
-        min: 4,
-        max: 5
-    };
-
-    var template = Handlebars.load_template('tpl-infos'),
-        rendered = template(properties);
-
 * Your rendered string is ready, and waiting to be inserted in your DOM :)
 
 ::
@@ -92,7 +65,8 @@ Advanced
 
 ::
 
-    HANDLEBARS_COMPILER = "/usr/local/bin/handlebars {infile} -f {outfile}"
+    HANDLEBARS_PRECOMPILE_TEMPLATES = True
+    HANDLEBARS_COMPILER = "/usr/local/bin/handlebars -N {template_name} -m -i -"
 
 
 A ``{% verbatim %}`` tag is available to escape a specific part. For 
